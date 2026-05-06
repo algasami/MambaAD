@@ -90,6 +90,8 @@ class cfg(cfg_common, cfg_dataset_default, cfg_model_mambaad):
 		self.trainer.data.batch_size = self.batch_train
 		self.trainer.data.batch_size_per_gpu_test = self.batch_test_per
 
+		self.trainer.find_unused_parameters = True
+
 		# ==> loss
 		self.loss.loss_terms = [
 			dict(type='L2Loss', name='pixel', lam=5.0),
