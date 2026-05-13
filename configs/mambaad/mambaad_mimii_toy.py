@@ -34,7 +34,7 @@ class cfg(cfg_common, cfg_dataset_default, cfg_model_mambaad):
 
 		# ==> data
 		self.data.type = 'DefaultAD'
-		self.data.root = 'data/dcase-2020-spectrogram'
+		self.data.root = 'data/dcase-2020-three-channel'
 		self.data.meta = 'meta.json'
 		self.data.cls_names = []
 
@@ -77,7 +77,7 @@ class cfg(cfg_common, cfg_dataset_default, cfg_model_mambaad):
 		# ==> trainer
 		self.trainer.name = 'MAMBAADTrainer'
 		self.trainer.logdir_sub = ''
-		self.trainer.resume_dir = 'MAMBAADTrainer_MambaAD_configs_mambaad_mambaad_mimii_toy_20260509-113655'
+		self.trainer.resume_dir = ''
 		self.trainer.epoch_full = self.epoch_full
 		self.trainer.scheduler_kwargs = dict(
 			name='step', lr_noise=None, noise_pct=0.67, noise_std=1.0, noise_seed=42, lr_min=self.lr / 1e2,
