@@ -22,14 +22,13 @@ class cfg(cfg_common, cfg_dataset_default, cfg_model_mambaad):
 		self.warmup_epochs = 0
 		self.test_start_epoch = self.epoch_full
 		self.test_per_epoch = self.epoch_full // 10
-		self.batch_train = 64
+		self.batch_train = 16
+		self.ratio = 0.2 # use how much training data, 1.0 means full data, 0.2 means 20% data
 		self.batch_test_per = 16
 		self.lr = 0.005 * self.batch_train / 16
 		self.weight_decay = 0.0001
 		self.metrics = [
 			'mAUROC_sp_max', 'mAP_sp_max', 'mF1_max_sp_max',
-			'mAUROC_px', 'mAP_px', 'mF1_max_px', 'mAUPRO_px',
-			'mF1_px_0.2_0.8_0.1', 'mAcc_px_0.2_0.8_0.1', 'mIoU_px_0.2_0.8_0.1', 'mIoU_max_px',
 		]
 
 		# ==> data
