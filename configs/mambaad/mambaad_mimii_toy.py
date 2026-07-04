@@ -32,7 +32,7 @@ class cfg(cfg_common, cfg_dataset_default, cfg_model_mambaad):
 
 		# ==> data
 		self.data.type = 'DefaultAD'
-		self.data.root = 'data/dcase-2020-three-channel'
+		self.data.root = 'data/dcase-2020-spectrogram'
 		self.data.meta = 'meta.json'
 		self.data.cls_names = []
 
