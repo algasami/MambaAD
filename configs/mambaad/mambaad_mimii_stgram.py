@@ -92,7 +92,7 @@ class cfg(cfg_common, cfg_dataset_default, cfg_model_mambaad):
 
 		# ==> loss
 		self.loss.loss_terms = [
-			dict(type='L2Loss', name='pixel', lam=5.0),
+			dict(type='CosLoss', name='cos', avg=False, lam=1.0),
 		]
 
 		# ==> logging
@@ -101,9 +101,9 @@ class cfg(cfg_common, cfg_dataset_default, cfg_model_mambaad):
 			dict(name='data_t', fmt=':>5.3f'),
 			dict(name='optim_t', fmt=':>5.3f'),
 			dict(name='lr', fmt=':>7.6f'),
-			dict(name='pixel', suffixes=[''], fmt=':>5.3f', add_name='avg'),
+			dict(name='cos', suffixes=[''], fmt=':>5.3f', add_name='avg'),
 		]
 		self.logging.log_terms_test = [
 			dict(name='batch_t', fmt=':>5.3f', add_name='avg'),
-			dict(name='pixel', suffixes=[''], fmt=':>5.3f', add_name='avg'),
+			dict(name='cos', suffixes=[''], fmt=':>5.3f', add_name='avg'),
 		]
