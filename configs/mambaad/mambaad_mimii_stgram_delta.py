@@ -25,7 +25,8 @@ class cfg(cfg_common, cfg_dataset_default, cfg_model_mambaad):
 		self.batch_train = 16
 		self.batch_test_per = 16
 		self.lr = 0.005 * self.batch_train / 16
-		self.weight_decay = 0.0001
+		# higher weight decay to prevent divergence
+		self.weight_decay = 0.01
 		self.metrics = [
 			'mAUROC_sp_max', 'mAP_sp_max', 'mF1_max_sp_max',
 		]
