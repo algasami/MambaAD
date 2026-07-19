@@ -18,7 +18,7 @@ class cfg(cfg_common, cfg_dataset_default, cfg_model_mambaad):
 		self.fvcore_c = 3
 		self.seed = 42
 		self.size = 256
-		self.epoch_full = 1000
+		self.epoch_full = 200
 		self.warmup_epochs = 0
 		self.test_start_epoch = self.epoch_full
 		self.test_per_epoch = self.epoch_full // 20
@@ -29,6 +29,7 @@ class cfg(cfg_common, cfg_dataset_default, cfg_model_mambaad):
 		self.weight_decay = 0.01
 		self.metrics = [
 			'mAUROC_sp_max', 'mAP_sp_max', 'mF1_max_sp_max',
+			'mAUROC_sp_mean', 'AP_sp_mean', 'F1_max_sp_mean',
 		]
 
 		# ==> data
