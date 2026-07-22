@@ -18,7 +18,7 @@ class cfg(cfg_common, cfg_dataset_default, cfg_model_mambaad):
 		self.fvcore_c = 3
 		self.seed = 42
 		self.size = 256
-		self.epoch_full = 200
+		self.epoch_full = 50
 		self.warmup_epochs = 0
 		self.test_start_epoch = self.epoch_full
 		self.test_per_epoch = self.epoch_full // 20
