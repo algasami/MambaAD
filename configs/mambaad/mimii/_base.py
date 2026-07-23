@@ -6,7 +6,54 @@ import torchvision.transforms.functional as F
 from configs.__base__ import *
 
 
-class cfg(cfg_common, cfg_dataset_default, cfg_model_mambaad):
+# =============================================================================
+# Shared MambaAD-on-MIMII config base.
+#
+# Directory layout (this package):
+#   mimii/<ablation-type>/<input-type>.py
+#     ablation-type : e50 | e200 | e1000 | lowlr-lowwd | scan-type
+#     input-type    : log-Mel | stgram | stgram-delta   (scan-type is by scan)
+#
+# Every leaf is a thin subclass of `cfg_mimii_base` that only flips the
+# ablation knobs (ABL_*) and/or the input representation (INPUT_ROOT). All the
+# heavy lifting (transforms, model, optimiser, trainer, loss, logging) lives
+# here so the matrix stays in sync. See CLAUDE.md / NOTE.md for the rationale
+# behind each ablation.
+# =============================================================================
+
+# --- metric presets ----------------------------------------------------------
+# 42-column metric.txt: both sp_max (per-pixel max) and sp_mean (mean) pooling
+# families. This is the current standard for all MIMII runs.
+METRICS_SP_MEAN = [
+	'mAUROC_sp_max', 'mAP_sp_max', 'mF1_max_sp_max',
+	'mAUROC_sp_mean', 'AP_sp_mean', 'F1_max_sp_mean',
+]
+# 21-column metric.txt: sp_max only. What the original long-schedule (e1000)
+# runs recorded before mean metrics were added; kept for faithful reproduction.
+METRICS_SP_MAX = [
+	'mAUROC_sp_max', 'mAP_sp_max', 'mF1_max_sp_max',
+]
+
+# --- input representations (spectrogram dataset roots) ------------------------
+DATA_ROOT_LOG_MEL      = 'data/dcase-2020-spectrogram'       # (log-Mel, delta, delta-delta)
+DATA_ROOT_STGRAM       = 'data/dcase-2020-stgram'            # (Sgram, frozen Tgram, Sgram)
+DATA_ROOT_STGRAM_DELTA = 'data/dcase-2020-stgram-delta'      # (Sgram, frozen Tgram, delta)
+
+
+class cfg_mimii_base(cfg_common, cfg_dataset_default, cfg_model_mambaad):
+
+	# ---- ablation knobs: schedule / optimiser (override per ablation folder) ----
+	ABL_EPOCH = 50            # epoch_full
+	ABL_LR_BASE = 0.005       # base lr, scaled by batch/16
+	ABL_WD = 0.01             # weight decay (0.01 tamps down divergence w/ AdamW)
+	ABL_METRICS = METRICS_SP_MEAN
+
+	# ---- input representation (override per input-type leaf) ----
+	INPUT_ROOT = DATA_ROOT_LOG_MEL
+
+	# ---- scan ablation (override in scan-type leaves) ----
+	SCAN_TYPE = 'hilbert'
+	SCAN_NDIR = 8
 
 	def __init__(self):
 		# super(cfg, self).__init__()
@@ -18,23 +65,19 @@ class cfg(cfg_common, cfg_dataset_default, cfg_model_mambaad):
 		self.fvcore_c = 3
 		self.seed = 42
 		self.size = 256
-		self.epoch_full = 50
+		self.epoch_full = self.ABL_EPOCH
 		self.warmup_epochs = 0
 		self.test_start_epoch = self.epoch_full
 		self.test_per_epoch = self.epoch_full // 20
 		self.batch_train = 16
 		self.batch_test_per = 16
-		self.lr = 0.005 * self.batch_train / 16
-		# higher weight decay to prevent divergence
-		self.weight_decay = 0.01
-		self.metrics = [
-			'mAUROC_sp_max', 'mAP_sp_max', 'mF1_max_sp_max',
-			'mAUROC_sp_mean', 'AP_sp_mean', 'F1_max_sp_mean',
-		]
+		self.lr = self.ABL_LR_BASE * self.batch_train / 16
+		self.weight_decay = self.ABL_WD
+		self.metrics = self.ABL_METRICS
 
 		# ==> data
 		self.data.type = 'DefaultAD'
-		self.data.root = 'data/dcase-2020-spectrogram'
+		self.data.root = self.INPUT_ROOT
 		self.data.meta = 'meta.json'
 		self.data.cls_names = []
 
@@ -58,8 +101,8 @@ class cfg(cfg_common, cfg_dataset_default, cfg_model_mambaad):
 								   strict=False, features_only=True, out_indices=[1, 2, 3])
 		self.model_s = dict(
 			depths_decoder=[3, 4, 6, 3],
-			scan_type='hilbert',
-			num_direction=8,
+			scan_type=self.SCAN_TYPE,
+			num_direction=self.SCAN_NDIR,
 		)
 		self.model = Namespace()
 		self.model.name = 'mambaad'
