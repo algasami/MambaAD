@@ -55,6 +55,16 @@ class cfg_mimii_base(cfg_common, cfg_dataset_default, cfg_model_mambaad):
 	SCAN_TYPE = 'hilbert'
 	SCAN_NDIR = 8
 
+	# ---- score-readout ablation (override in scorer/ leaves) ----
+	# None -> the native cosine-residual sp_max/sp_mean readout (historical default).
+	# Otherwise a dict(type=<SCORER name>, **kwargs) picking an alternative test-time readout
+	# registered in util/scorer.py, e.g. dict(type='MahaScorer', source='student'). Image-level
+	# scorers (Maha/kNN) fit a per-class bank on the normal train split, so `-m test` and every
+	# periodic eval during `-m train` run one extra forward pass over the train loader; run them
+	# single-GPU (the per-class bank fit is not gathered across DDP ranks). Both metric families
+	# report the same number for image-level scorers (sp_max == sp_mean by construction).
+	ABL_SCORER = None
+
 	def __init__(self):
 		# super(cfg, self).__init__()
 		cfg_common.__init__(self)
@@ -112,6 +122,15 @@ class cfg_mimii_base(cfg_common, cfg_dataset_default, cfg_model_mambaad):
 		# ==> evaluator
 		self.evaluator.kwargs = dict(metrics=self.metrics, pooling_ks=None, max_step_aupro=100)
 		# self.evaluator.kwargs = dict(metrics=self.metrics, pooling_ks=[16, 16], max_step_aupro=100)
+
+		# ==> scorer (test-time score readout; see ABL_SCORER above + util/scorer.py)
+		self.scorer = Namespace()
+		if self.ABL_SCORER is None:
+			self.scorer.type = 'CosResidualScorer'
+			self.scorer.kwargs = dict(amap_mode='add', gaussian_sigma=4, uni_am=False)
+		else:
+			self.scorer.type = self.ABL_SCORER['type']
+			self.scorer.kwargs = {k: v for k, v in self.ABL_SCORER.items() if k != 'type'}
 
 		# ==> optimizer
 		self.optim.lr = self.lr
